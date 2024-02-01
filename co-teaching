@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated Pie Chart</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+
+<div id="chart"></div>
+
+<script>
+// Data for the pie chart
+const data = [
+  { category: 'Professional Development', percentage: 20 },
+  { category: 'Collaborative Planning Time', percentage: 10 },
+  { category: 'Clear Roles and Responsibilities', percentage: 15 },
+  { category: 'Supportive Leadership', percentage: 10 },
+  { category: 'Regular Check-ins and Feedback', percentage: 15 },
+  { category: 'Data Collection and Monitoring', percentage: 10 },
+  { category: 'Recognition and Celebration', percentage: 15 },
+  { category: 'Community Involvement', percentage: 5 }
+];
+
+// Set up the pie chart dimensions
+const width = 500;
+const height = 500;
+const radius = Math.min(width, height) / 2;
+
+// Set up color scale
+const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+// Create the pie chart
+const pie = d3.pie().value(d => d.percentage);
+const arc = d3.arc().outerRadius(radius).innerRadius(0);
+
+const svg = d3.select("#chart")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height)
+  .append("g")
+  .attr("transform", `translate(${width / 2},${height / 2})`);
+
+const path = svg.selectAll("path")
+  .data(pie(data))
+  .enter()
+  .append("path")
+  .attr("d", arc)
+  .attr("fill", (d, i) => color(i))
+  .each(function (d) { this._current = d; }); // store the initial angles
+
+// Add animation to the chart
+function updateChart(newData) {
+  const pathUpdate = svg.selectAll("path")
+    .data(pie(newData));
+
+  pathUpdate.transition().duration(1000).attrTween("d", arcTween);
+
+  pathUpdate.enter()
+    .append("path")
+    .attr("d", arc)
+    .attr("fill", (d, i) => color(i))
+    .each(function (d) { this._current = d; });
+
+  pathUpdate.exit().remove();
+}
+
+// Function to smoothly interpolate between current and new angles
+function arcTween(a) {
+  const i = d3.interpolate(this._current, a);
+  this._current = i(0);
+  return function (t) {
+    return arc(i(t));
+  };
+}
+
+// Example: Update the chart with new data after a delay
+setTimeout(() => {
+  const newData = [
+    { category: 'Updated Category 1', percentage: 25 },
+    { category: 'Updated Category 2', percentage: 20 },
+    { category: 'Updated Category 3', percentage: 15 },
+    { category: 'Updated Category 4', percentage: 10 },
+    { category: 'Updated Category 5', percentage: 5 },
+    { category: 'Updated Category 6', percentage: 10 },
+    { category: 'Updated Category 7', percentage: 10 },
+    { category: 'Updated Category 8', percentage: 5 }
+  ];
+  updateChart(newData);
+}, 3000);
+
+</script>
+
+</body>
+</html>
